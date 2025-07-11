@@ -33,45 +33,42 @@ class _MainPageState extends State<MainPage> {
           const SizedBox(width: 20),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsetsGeometry.symmetric(horizontal: 10),
-        child: Row(
-          children: [
-            Expanded(child: widget.child),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.linear,
-              height: double.infinity,
-              width: isSelected ? 72 : 0,
-              child: ClipRect(
-                child: NavigationRail(
-                  selectedIndex: widget.currentIndex,
-                  onDestinationSelected: (int index) {
-                    if (index !=  widget.currentIndex ) {
-                      String page = switch (index) {
-                        0 => Routes.home,
-                        1=> Routes.settings,
-                        _ => Routes.home,
-                      };
-                      context.go(page);
-                    }
-                  },
-                  labelType: NavigationRailLabelType.selected,
-                  destinations: const [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.home),
-                      label: Text(''),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.settings),
-                      label: Text(''),
-                    ),
-                  ],
-                ),
+      body: Row(
+        children: [
+          Expanded(child: widget.child),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.linear,
+            height: double.infinity,
+            width: isSelected ? 72 : 0,
+            child: ClipRect(
+              child: NavigationRail(
+                selectedIndex: widget.currentIndex,
+                onDestinationSelected: (int index) {
+                  if (index !=  widget.currentIndex ) {
+                    String page = switch (index) {
+                      0 => Routes.home,
+                      1=> Routes.settings,
+                      _ => Routes.home,
+                    };
+                    context.go(page);
+                  }
+                },
+                labelType: NavigationRailLabelType.selected,
+                destinations: const [
+                  NavigationRailDestination(
+                    icon: Icon(Icons.home),
+                    label: Text(''),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.settings),
+                    label: Text(''),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

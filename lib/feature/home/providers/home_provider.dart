@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:milliyway_pos/domain/models/product_model.dart';
 
+import '../../../services/port/db.dart';
+
 class HomeProvider extends ChangeNotifier {
   HomeProvider() {
     calculateTotalSum();
@@ -79,14 +81,23 @@ class HomeProvider extends ChangeNotifier {
     calculateTotalSum();
   }
 
+  ProductModel? findProduct(String code){
+    for (var e in dbProducts) {
+      if(e.code == code){
+        return e;
+      }
+    }
+    return null;
+  }
+
   void addProduct(ProductModel product) {
     _items.add(product);
     calculateTotalSum();
   }
 
   void removeProduct(ProductModel product) {
-      _items.removeWhere((e) => e.code == product.code);
-      calculateTotalSum();
+    _items.removeWhere((e) => e.code == product.code);
+    calculateTotalSum();
   }
 
   /// Mahsulot sonini oshirish
@@ -107,5 +118,94 @@ class HomeProvider extends ChangeNotifier {
       _items[index] = updatedProduct;
       calculateTotalSum();
     }
+  }
+
+  /// Scanner orqali mahsulot qo'shish yoki mavjud mahsulot sonini oshirish
+  bool addOrUpdateProductByCode(ProductModel product) {
+    // Avval mavjud mahsulot bormi tekshirish
+    final existingProductIndex = _items.indexWhere((item) => item.code == product.code);
+
+    if (existingProductIndex != -1) {
+      // Mahsulot mavjud bo'lsa, sonini oshirish
+      final existingProduct = _items[existingProductIndex];
+      increaseProductCount(existingProduct);
+      return true;
+    } else {
+      // Mahsulot mavjud bo'lmasa, yangi mahsulot qo'shish
+      final newProduct = ProductModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: product.name,
+        code: product.code,
+        price: product.price , // Default narx
+        count: 1,
+        discount: product.discount.toDouble(),
+        unit: product.unit ,
+      );
+      addProduct(newProduct);
+      return false; // Yangi mahsulot qo'shildi
+    }
+  }
+
+  /// Code bo'yicha mahsulot qidirish
+  ProductModel? findProductByCode(String code) {
+    try {
+      return _items.firstWhere((item) => item.code == code);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Mahsulot code bo'yicha mavjudligini tekshirish
+  bool isProductExists(String code) {
+    return _items.any((item) => item.code == code);
+  }
+
+  /// Mahsulot ma'lumotlarini yangilash
+  void updateProduct(ProductModel updatedProduct) {
+    final index = _items.indexWhere((item) => item.code == updatedProduct.code);
+    if (index != -1) {
+      _items[index] = updatedProduct;
+      calculateTotalSum();
+    }
+  }
+
+  /// Mahsulot narxini yangilash
+  void updateProductPrice(String code, double newPrice) {
+    final index = _items.indexWhere((item) => item.code == code);
+    if (index != -1) {
+      final updatedProduct = _items[index].copyWith(price: newPrice);
+      _items[index] = updatedProduct;
+      calculateTotalSum();
+    }
+  }
+
+  /// Mahsulot chegirmasini yangilash
+  void updateProductDiscount(String code, double newDiscount) {
+    final index = _items.indexWhere((item) => item.code == code);
+    if (index != -1) {
+      final updatedProduct = _items[index].copyWith(discount: newDiscount);
+      _items[index] = updatedProduct;
+      calculateTotalSum();
+    }
+  }
+
+  /// Mahsulot sonini o'rnatish
+  void setProductCount(String code, int newCount) {
+    final index = _items.indexWhere((item) => item.code == code);
+    if (index != -1 && newCount > 0) {
+      final updatedProduct = _items[index].copyWith(count: newCount);
+      _items[index] = updatedProduct;
+      calculateTotalSum();
+    }
+  }
+
+  /// Jami mahsulotlar soni
+  int get totalItemsCount {
+    return _items.fold(0, (sum, item) => sum + item.count);
+  }
+
+  /// Turli mahsulotlar soni
+  int get uniqueItemsCount {
+    return _items.length;
   }
 }

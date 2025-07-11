@@ -15,7 +15,7 @@ class PrimaryButton extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
-      color: AppColors.indigoPrimary,
+      color: AppColors.darkPrimaryVariant,
       height: 70,
       minWidth: double.maxFinite,
       child: Text(

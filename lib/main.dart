@@ -6,7 +6,7 @@ import 'package:window_manager/window_manager.dart';
 import 'app.dart';
 
 void main() {
-  runZonedGuarded(
+  /*runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
@@ -37,5 +37,6 @@ void main() {
         debugPrint("Stack: $stackTrace");
       }
     },
-  );
+  );*/
+  runApp(MyApp());
 }

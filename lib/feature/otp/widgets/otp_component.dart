@@ -23,32 +23,20 @@ class _OtpComponentState extends State<OtpComponent>
   bool _isError = false;
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    // Shake animation setup
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
+
     _shakeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _shakeController, curve: Curves.elasticIn),
     );
 
-    // Button pulse animation setup
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 100),
-      vsync: this,
-    );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-
-    // Auto-focus when component loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
@@ -58,10 +46,9 @@ class _OtpComponentState extends State<OtpComponent>
     if (otp.length < 6) {
       setState(() {
         otp.add(digit);
-        _isError = false; // Reset error state when typing
+        _isError = false;
       });
 
-      // Haptic feedback
       HapticFeedback.lightImpact();
 
       if (otp.length == 6) {
@@ -69,11 +56,9 @@ class _OtpComponentState extends State<OtpComponent>
         final isCorrect = entered == widget.correctCode;
 
         if (isCorrect) {
-          // Success feedback
           HapticFeedback.heavyImpact();
           widget.onSubmit(true);
         } else {
-          // Error feedback and animation
           HapticFeedback.vibrate();
           _triggerErrorAnimation();
           widget.onSubmit(false);
@@ -86,7 +71,7 @@ class _OtpComponentState extends State<OtpComponent>
     if (otp.isNotEmpty) {
       setState(() {
         otp.removeLast();
-        _isError = false; // Reset error state when deleting
+        _isError = false;
       });
       HapticFeedback.selectionClick();
     }
@@ -96,7 +81,6 @@ class _OtpComponentState extends State<OtpComponent>
     setState(() => _isError = true);
     _shakeController.forward().then((_) {
       _shakeController.reset();
-      // Clear OTP after error animation
       Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted) {
           setState(() {
@@ -120,7 +104,6 @@ class _OtpComponentState extends State<OtpComponent>
   void dispose() {
     _focusNode.dispose();
     _shakeController.dispose();
-    _pulseController.dispose();
     for (final controller in _buttonControllers.values) {
       controller.dispose();
     }
@@ -129,29 +112,19 @@ class _OtpComponentState extends State<OtpComponent>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return KeyboardListener(
       focusNode: _focusNode,
       onKeyEvent: (KeyEvent event) {
         if (event is KeyDownEvent) {
           final key = event.logicalKey;
 
-          // Handle digit keys (0-9)
-          if (key.debugName != null && key.debugName!.startsWith('Digit')) {
-            final digit = key.debugName!.replaceAll('Digit ', '');
-            if (RegExp(r'^[0-9]$').hasMatch(digit)) {
-              _handleDigit(digit);
-            }
-          }
-          // Handle numpad keys
-          else if (key.debugName != null &&
-              key.debugName!.startsWith('Numpad')) {
-            final digit = key.debugName!.replaceAll('Numpad ', '');
-            if (RegExp(r'^[0-9]$').hasMatch(digit)) {
-              _handleDigit(digit);
-            }
-          }
-          // Handle backspace
-          else if (key == LogicalKeyboardKey.backspace) {
+          final keyLabel = key.keyLabel;
+          if (keyLabel.isNotEmpty && RegExp(r'^[0-9]$').hasMatch(keyLabel)) {
+            _handleDigit(keyLabel);
+          } else if (key == LogicalKeyboardKey.backspace) {
             _handleDelete();
           }
         }
@@ -181,16 +154,16 @@ class _OtpComponentState extends State<OtpComponent>
                     height: height,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(28),
                       border: _isError
-                          ? Border.all(color: Colors.red.shade300, width: 2)
-                          : null,
+                          ? Border.all(color: colorScheme.error, width: 2)
+                          : Border.all(color: colorScheme.outline.withAlpha(30)),
                       boxShadow: [
                         BoxShadow(
                           color: _isError
-                              ? Colors.red.withAlpha(30)
-                              : Colors.grey.withAlpha(30),
+                              ? colorScheme.error.withAlpha(20)
+                              : colorScheme.shadow.withAlpha(10),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -201,23 +174,20 @@ class _OtpComponentState extends State<OtpComponent>
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           child: Icon(
-                            _isError ? Icons.error_outline : Icons.lock,
+                            _isError ? Icons.error_outline : Icons.lock_outline,
                             size: 48,
-                            color: _isError ? Colors.red : Colors.blue,
+                            color: _isError ? colorScheme.error : colorScheme.primary,
                           ),
                         ),
                         const SizedBox(height: 16),
                         AnimatedDefaultTextStyle(
                           duration: const Duration(milliseconds: 300),
-                          style: TextStyle(
-                            fontSize: 20,
+                          style: theme.textTheme.headlineSmall!.copyWith(
+                            color: _isError ? colorScheme.error : colorScheme.onSurface,
                             fontWeight: FontWeight.bold,
-                            color: _isError ? Colors.red : Colors.black,
                           ),
                           child: Text(
-                            _isError
-                                ? 'Incorrect code'
-                                : 'Enter your access code',
+                            _isError ? 'Noto\'g\'ri kod' : 'Kirish kodini kiriting',
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -233,11 +203,11 @@ class _OtpComponentState extends State<OtpComponent>
                                 shape: BoxShape.circle,
                                 color: _isError
                                     ? (index < otp.length
-                                    ? Colors.red
-                                    : Colors.red.shade200)
+                                    ? colorScheme.error
+                                    : colorScheme.error.withAlpha(30))
                                     : (index < otp.length
-                                    ? Colors.black
-                                    : Colors.grey.shade300),
+                                    ? colorScheme.primary
+                                    : colorScheme.outline.withAlpha(30)),
                               ),
                             );
                           }),
@@ -253,11 +223,9 @@ class _OtpComponentState extends State<OtpComponent>
                                 childAspectRatio: 1.0,
                                 padding: const EdgeInsets.all(12),
                                 crossAxisSpacing: 24,
-                                // ⬅️ spacing oshirildi
                                 mainAxisSpacing: 24,
                                 children: [
-                                  for (var i = 1; i <= 9; i++)
-                                    _buildButton(i.toString()),
+                                  for (var i = 1; i <= 9; i++) _buildButton(i.toString()),
                                   const SizedBox(),
                                   _buildButton('0'),
                                   _buildButton('Del', isDelete: true),
@@ -266,14 +234,12 @@ class _OtpComponentState extends State<OtpComponent>
                             ),
                           ),
                         ),
-                        // Keyboard hint
-                        Container(
+                        Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Text(
-                            'Use keyboard or click buttons',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
+                            'Klaviatura yoki tugmalarni ishlatishingiz mumkin',
+                            style: theme.textTheme.bodySmall!.copyWith(
+                              color: colorScheme.onSurface.withAlpha(60),
                             ),
                           ),
                         ),
@@ -290,14 +256,17 @@ class _OtpComponentState extends State<OtpComponent>
   }
 
   Widget _buildButton(String label, {bool isDelete = false}) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     final controller = _buttonControllers[label] ??= AnimationController(
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    final animation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+
+    final animation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
+    );
 
     return AnimatedBuilder(
       animation: animation,
@@ -307,6 +276,7 @@ class _OtpComponentState extends State<OtpComponent>
           child: Material(
             shape: const CircleBorder(),
             elevation: 3,
+            shadowColor: colorScheme.shadow,
             child: InkWell(
               customBorder: const CircleBorder(),
               onTap: () {
@@ -320,24 +290,29 @@ class _OtpComponentState extends State<OtpComponent>
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 width: 90,
-                // ⬅️ kattalashtirildi
                 height: 90,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _isError ? Colors.red.shade50 : Colors.grey[100],
+                  color: _isError
+                      ? colorScheme.errorContainer
+                      : colorScheme.surfaceContainerHighest,
                   border: _isError
-                      ? Border.all(color: Colors.red.shade200)
-                      : null,
+                      ? Border.all(color: colorScheme.error.withAlpha(50))
+                      : Border.all(color: colorScheme.outline.withAlpha(20)),
                 ),
                 child: Center(
                   child: AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 200),
-                    style: TextStyle(
-                      fontSize: 26,
+                    style: theme.textTheme.headlineSmall!.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: _isError ? Colors.red.shade700 : Colors.black,
+                      color: _isError
+                          ? colorScheme.onErrorContainer
+                          : colorScheme.onSurfaceVariant,
                     ),
-                    child: Text(label),
+                    child: Text(
+                      isDelete ? 'Del' : label,
+                      style: TextStyle(fontSize: isDelete ? 16 : 26),
+                    ),
                   ),
                 ),
               ),

@@ -11,7 +11,7 @@ final GlobalKey<NavigatorState> shellNavigatorKey = GlobalKey<NavigatorState>();
 
 final GoRouter router = GoRouter(
   navigatorKey: rootNavigatorKey,
-  initialLocation: "/",
+  initialLocation: "/home",
   routes: [
     GoRoute(path: "/", builder: (context, state) => const OtpPage()),
     ShellRoute(

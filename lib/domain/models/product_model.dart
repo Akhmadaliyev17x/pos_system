@@ -1,39 +1,46 @@
 class ProductModel {
-  String id;
-
-  String name;
-  String code;
-
-  double price;
-
-  int count ;
-
-  double discount;
-  double sum;
-  String unit;
+  final String id;
+  final String name;
+  final String code;
+  final double price;
+  final int count;
+  final double discount;
+  final double sum;
+  final String unit;
 
   //<editor-fold desc="Data Methods">
-  ProductModel({
-     this.id = "",
+  const ProductModel({
+    this.id = "",
     required this.name,
     required this.code,
     required this.price,
-     required this.count,
+    required this.count,
     required this.discount,
-     this.sum  = 0,
+    this.sum = 0,
     required this.unit,
   });
+
+  /// Bo‘sh (default) ProductModel
+  factory ProductModel.empty() {
+    return const ProductModel(
+      id: '',
+      name: 'Noma\'lum mahsulot',
+      code: '',
+      price: 0,
+      count: 0,
+      discount: 0,
+      sum: 0,
+      unit: '',
+    );
+  }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is ProductModel &&
-          runtimeType == other.runtimeType &&
-          id == other.id);
+          (other is ProductModel && runtimeType == other.runtimeType && id == other.id);
 
   @override
-  int get hashCode =>
-      id.hashCode;
+  int get hashCode => id.hashCode;
 
   @override
   String toString() {
@@ -73,29 +80,28 @@ class ProductModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': this.id,
-      'name': this.name,
-      'code': this.code,
-      'price': this.price,
-      'count': this.count,
-      'discount': this.discount,
-      'sum': this.sum,
-      'unit': this.unit,
+      'id': id,
+      'name': name,
+      'code': code,
+      'price': price,
+      'count': count,
+      'discount': discount,
+      'sum': sum,
+      'unit': unit,
     };
   }
 
   factory ProductModel.fromJson(Map<String, dynamic> map) {
     return ProductModel(
-      id: map['id'] as String,
-      name: map['name'] as String,
-      code: map['code'] as String,
-      price: map['price'] as double,
-      count: map['count'] as int,
-      discount: map['discount'] as double,
-      sum: map['sum'] as double,
-      unit: map['unit'] as String,
+      id: map['id'] as String? ?? '',
+      name: map['name'] as String? ?? '',
+      code: map['code'] as String? ?? '',
+      price: (map['price'] as num?)?.toDouble() ?? 0,
+      count: map['count'] as int? ?? 0,
+      discount: (map['discount'] as num?)?.toDouble() ?? 0,
+      sum: (map['sum'] as num?)?.toDouble() ?? 0,
+      unit: map['unit'] as String? ?? '',
     );
   }
-
-  //</editor-fold>
+//</editor-fold>
 }
